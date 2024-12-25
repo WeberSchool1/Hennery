@@ -96,6 +96,8 @@ public class Follower {
     private boolean holdPositionAtEnd;
     private boolean teleopDrive;
 
+    private double globalMaxPower = 1.0;
+
     private double previousSecondaryTranslationalIntegral;
     private double previousTranslationalIntegral;
     private double holdPointTranslationalScaling = FollowerConstants.holdPointTranslationalScaling;
@@ -249,6 +251,7 @@ public class Follower {
      * @param set This caps the motor power from [0, 1].
      */
     public void setMaxPower(double set) {
+        globalMaxPower = set;
         driveVectorScaler.setMaxPowerScaling(set);
     }
 
@@ -430,17 +433,28 @@ public class Follower {
 
     /**
      * This follows a Path.
-     * This also makes the Follower hold the last Point on the Path.
-     *
+     * This also makes the Follower hold the last Point on the Path, and allows the option to set the maximum power for the path.
+     * @param maxPower the maximum power that the motors can be set to while following the path
      * @param path the Path to follow.
      */
-    public void followPath(Path path, boolean holdEnd) {
+    public void followPath(Path path, boolean holdEnd, double maxPower) {
+        setMaxPower(maxPower);
         breakFollowing();
         holdPositionAtEnd = holdEnd;
         isBusy = true;
         followingPathChain = false;
         currentPath = path;
         closestPose = currentPath.getClosestPoint(poseUpdater.getPose(), BEZIER_CURVE_BINARY_STEP_LIMIT);
+    }
+
+    /**
+     * This follows a Path.
+     * This also makes the Follower hold the last Point on the Path.
+     *
+     * @param path the Path to follow.
+     */
+    public void followPath(Path path, boolean holdEnd) {
+        followPath(path, holdEnd, globalMaxPower);
     }
 
     /**
@@ -455,10 +469,11 @@ public class Follower {
     /**
      * This follows a PathChain. Drive vector projection is only done on the last Path.
      * This also makes the Follower hold the last Point on the PathChain.
-     *
+     * @param maxPower the maximum power that the motors can be set to while following the path
      * @param pathChain the PathChain to follow.
      */
-    public void followPath(PathChain pathChain, boolean holdEnd) {
+    public void followPath(PathChain pathChain, boolean holdEnd, double maxPower) {
+        setMaxPower(maxPower);
         breakFollowing();
         holdPositionAtEnd = holdEnd;
         pathStartTimes = new long[pathChain.size()];
@@ -469,6 +484,16 @@ public class Follower {
         currentPathChain = pathChain;
         currentPath = pathChain.getPath(chainIndex);
         closestPose = currentPath.getClosestPoint(poseUpdater.getPose(), BEZIER_CURVE_BINARY_STEP_LIMIT);
+    }
+
+    /**
+     * This follows a PathChain. Drive vector projection is only done on the last Path.
+     * This also makes the Follower hold the last Point on the PathChain.
+     *
+     * @param pathChain the PathChain to follow.
+     */
+    public void followPath(PathChain pathChain, boolean holdEnd) {
+        followPath(pathChain, holdEnd, globalMaxPower);
     }
 
     /**
