@@ -30,9 +30,12 @@ public class MecanumTurretShooter extends LinearOpMode {
     private static final double SERVO_MAX_ANGLE = 45;
     private static final double ALIGNMENT_TOLERANCE = 2.0;
 
-    private boolean shooterSpinning = false;
-    private long shooterStartTime = 0;
-    private final long SPINUP_DELAY_MS = 300; // time to reach full speed (adjust)
+    // Shooter velocity tracking
+    private int lastShooterTicks = 0;
+    private long lastTime = 0;
+    private double currentVelocity = 0; // ticks/sec
+    private double targetVelocity = 0;
+    private boolean upToSpeed = false;
 
 
     @Override
@@ -58,6 +61,7 @@ public class MecanumTurretShooter extends LinearOpMode {
 
         shooterMotor.setDirection(DcMotor.Direction.REVERSE); // reversed
         shooterMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        shooterMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -124,30 +128,35 @@ public class MecanumTurretShooter extends LinearOpMode {
                 aligned = Math.abs(tx) <= ALIGNMENT_TOLERANCE;
             }
 
-            // -------- Shooter power based on inverted ty --------
-            if (targetVisible && aligned && gamepad1.a) {
-                // Calculate shooter power
-                double shooterPower = Math.min(0.8, 0.4 + (-ty + 10) * 0.0258);
-
-                // Start spinning if not already
-                if (!shooterSpinning) {
-                    shooterMotor.setPower(shooterPower);
-                    shooterSpinning = true;
-                    shooterStartTime = System.currentTimeMillis();
-                }
-
-                // Check if spin-up time has passed
-                if (System.currentTimeMillis() - shooterStartTime >= SPINUP_DELAY_MS) {
-                    // Shooter is up to speed → fire ball
-                    // Here you can activate a pusher servo or other mechanism
-                    // Example: pusherServo.setPosition(1.0);
-                }
-
+            // ===== Shooter power calculation using Limelight distance =====
+            double shooterPower = 0;
+            if (targetVisible) {
+                // Option: use ty or botpose
+                shooterPower = Math.min(0.7, 0.4 + (-ty + 10) * 0.015);
+                shooterMotor.setPower(shooterPower);
             } else {
-                // Stop shooter if button released
                 shooterMotor.setPower(0);
-                shooterSpinning = false;
             }
+
+            // ===== Shooter encoder velocity =====
+            int currentTicks = shooterMotor.getCurrentPosition();
+            long currentTime = System.currentTimeMillis();
+            long deltaTime = currentTime - lastTime;
+
+            if (deltaTime > 0) {
+                currentVelocity = ((double)(currentTicks - lastShooterTicks)) / deltaTime * 1000;
+            }
+            lastShooterTicks = currentTicks;
+            lastTime = currentTime;
+
+            // Calculate target velocity based on shooter power
+            targetVelocity = shooterPower * 6000; // scale for GoBilda 6000 RPM
+            upToSpeed = Math.abs(currentVelocity - targetVelocity) < (0.1 * targetVelocity);
+            // Stop shooter if button released
+            if (!gamepad1.a) {
+                shooterMotor.setPower(0);
+            }
+
 
             // -------- Telemetry --------
             telemetry.addData("FL", fl);
@@ -159,6 +168,9 @@ public class MecanumTurretShooter extends LinearOpMode {
             telemetry.addData("TX", tx);
             telemetry.addData("TY", ty);
             telemetry.addData("Aligned", aligned);
+            telemetry.addData("Current Velocity", "%.1f ticks/sec", currentVelocity);
+            telemetry.addData("Target Velocity", "%.1f ticks/sec", targetVelocity);
+            telemetry.addData("Up to Speed?", upToSpeed);
             telemetry.update();
         }
     }
