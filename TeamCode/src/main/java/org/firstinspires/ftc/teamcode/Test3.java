@@ -1,135 +1,94 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.hardware.IMU;
-
-import com.acmerobotics.dashboard.FtcDashboard;
-import com.acmerobotics.dashboard.config.Config;
-import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
-
-import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 @Config
-@TeleOp(name="Test3", group="TeleOp")
+@TeleOp(name = "Test3", group = "TeleOp")
 public class Test3 extends LinearOpMode {
 
-    // ----------------------
-    // Hardware
-    // ----------------------
-    public static DcMotor frontLeft, frontRight, backLeft, backRight;
-    public static DcMotor shooterMotor, frontIntake;
-    public static Servo turretServo, turretHood;
-    public static IMU imu;
-    public static Limelight3A limelight;
-
-    // ----------------------
-    // Configurable parameters (tune in Dashboard)
-    // ----------------------
-    public static double DRIVE_SCALE = 0.8;
-
+    // -------------------------------
+    // Tunable Variables (FTC Dashboard)
+    // -------------------------------
     public static double SHOOTER_MIN_POWER = 0.40;
     public static double SHOOTER_MAX_POWER = 0.72;
     public static double SHOOTER_DISTANCE_SCALE = 0.015;
-    public static double SHOOTER_POWER_TO_TICKS_PER_SEC = 6000.0;
-    public static double UP_TO_SPEED_TOLERANCE = 0.12;
 
-    public static double SERVO_MIN_ANGLE_DEG = -45.0;
-    public static double SERVO_MAX_ANGLE_DEG = 45.0;
+    public static double SERVO_TOTAL_ANGLE_DEG = 300.0;  // physical servo rotation
+    public static double SERVO_MIN_ANGLE_DEG = -150.0;    // logical left limit
+    public static double SERVO_MAX_ANGLE_DEG = 150.0;     // logical right limit
     public static double SERVO_MIN_POS = 0.0;
     public static double SERVO_MAX_POS = 1.0;
+    public static double SERVO_CENTER_POS = 0.5;         // servo pos when turret faces forward
     public static double TURRET_KP = 0.08;
-    public static double TURRET_ALIGNMENT_SERVO_TOL = 0.02; // 0..1 servo pos fraction
+    public static double TURRET_ALIGNMENT_DEG_TOL = 2.0;
+    public static double MANUAL_SERVO_STEP = 0.01;       // D-pad step
 
-    public static double HOOD_MIN_POS = 0.12;
-    public static double HOOD_MAX_POS = 0.5;
-    public static double HOOD_DISTANCE_SCALE = 0.005;
+    public static double HOOD_FIXED_POS = 0.6;          // hood stays fixed
 
-    public static double MANUAL_SERVO_STEP = 0.01;
+    // -------------------------------
+    // Hardware
+    // -------------------------------
+    private DcMotor frontLeft, frontRight, backLeft, backRight;
+    private DcMotor shooterMotor, frontIntake;
+    private Servo turretServo, turretHood;
+    private Limelight3A limelight;
+    private FtcDashboard dashboard;
+    private Telemetry dashTelemetry;
 
-    // ----------------------
-    // Runtime variables
-    // ----------------------
-    private int lastShooterTicks = 0;
-    private long lastTimeMs = 0;
-    private double currentVelocityTicksPerSec = 0;
-    private double targetVelocityTicksPerSec = 0;
-    private boolean isUpToSpeed = false;
     private boolean manualOverrideActive = false;
 
     @Override
-    public void runOpMode() throws InterruptedException {
+    public void runOpMode() {
 
-        // ---- Hardware mapping ----
-        frontLeft  = hardwareMap.get(DcMotor.class, "frontLeft");
+        // Map hardware
+        frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
         frontRight = hardwareMap.get(DcMotor.class, "frontRight");
-        backLeft   = hardwareMap.get(DcMotor.class, "backLeft");
-        backRight  = hardwareMap.get(DcMotor.class, "backRight");
-
+        backLeft = hardwareMap.get(DcMotor.class, "backLeft");
+        backRight = hardwareMap.get(DcMotor.class, "backRight");
         shooterMotor = hardwareMap.get(DcMotor.class, "shooterMotor");
-        frontIntake  = hardwareMap.get(DcMotor.class, "frontIntake");
-
+        frontIntake = hardwareMap.get(DcMotor.class, "frontIntake");
         turretServo = hardwareMap.get(Servo.class, "turretTurnLeft");
-        turretHood  = hardwareMap.get(Servo.class, "turretHood");
-
-        imu = hardwareMap.get(IMU.class, "imu");
+        turretHood = hardwareMap.get(Servo.class, "turretHood");
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
 
-        FtcDashboard dashboard = FtcDashboard.getInstance();
-
-        // ---- Motor setup ----
-        frontLeft.setDirection(DcMotor.Direction.FORWARD);
-        backLeft.setDirection(DcMotor.Direction.FORWARD);
-        frontRight.setDirection(DcMotor.Direction.REVERSE);
-        backRight.setDirection(DcMotor.Direction.REVERSE);
-
-        shooterMotor.setDirection(DcMotor.Direction.REVERSE);
         shooterMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        shooterMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
+        shooterMotor.setDirection(DcMotor.Direction.REVERSE);
         frontIntake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        frontIntake.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
-        lastShooterTicks = shooterMotor.getCurrentPosition();
-        lastTimeMs = System.currentTimeMillis();
+        // FTC Dashboard setup
+        dashboard = FtcDashboard.getInstance();
+        dashTelemetry = dashboard.getTelemetry();
 
         limelight.pipelineSwitch(5);
 
-        telemetry.addLine("Initialized. Press start.");
+        telemetry.addLine("Initialized — waiting for start...");
         telemetry.update();
+
         waitForStart();
         limelight.start();
 
+        // Main loop
         while (opModeIsActive()) {
 
-            // -------------------------
-            // Field-centric mecanum drive
-            // -------------------------
-            double driveX = -gamepad1.left_stick_x * DRIVE_SCALE;
-            double driveY = -gamepad1.left_stick_y * DRIVE_SCALE;
-            double turn   = -gamepad1.right_stick_x * DRIVE_SCALE;
+            // -----------------------------
+            // Basic Tank/Mecanum Drive (simple)
+            // -----------------------------
+            double y = -gamepad1.left_stick_y;
+            double x = gamepad1.left_stick_x;
+            double rot = gamepad1.right_stick_x;
 
-            YawPitchRollAngles angles = imu.getRobotYawPitchRollAngles();
-            double headingRad = Math.toRadians(angles.getYaw());
-
-            double tmpX = driveX * Math.cos(-headingRad) - driveY * Math.sin(-headingRad);
-            double tmpY = driveX * Math.sin(-headingRad) + driveY * Math.cos(-headingRad);
-            driveX = tmpX;
-            driveY = tmpY;
-
-            double fl = driveY + driveX + turn;
-            double fr = driveY - driveX - turn;
-            double bl = driveY - driveX + turn;
-            double br = driveY + driveX - turn;
+            double fl = y + x + rot;
+            double fr = y - x - rot;
+            double bl = y - x + rot;
+            double br = y + x - rot;
 
             double max = Math.max(Math.max(Math.abs(fl), Math.abs(fr)), Math.max(Math.abs(bl), Math.abs(br)));
             if (max > 1.0) {
@@ -141,28 +100,32 @@ public class Test3 extends LinearOpMode {
             backLeft.setPower(bl);
             backRight.setPower(br);
 
-            // -------------------------
-            // Limelight info
-            // -------------------------
+            // -----------------------------
+            // Limelight target tracking
+            // -----------------------------
             LLResult ll = limelight.getLatestResult();
             boolean targetVisible = (ll != null && ll.isValid());
             double tx = targetVisible ? ll.getTx() : 0.0;
             double ty = targetVisible ? ll.getTy() : 0.0;
 
-            // -------------------------
-            // Turret auto-align + manual D-pad override
-            // -------------------------
+            // -----------------------------
+            // Turret Control
+            // -----------------------------
             double desiredServoPos = turretServo.getPosition();
-            if (targetVisible && gamepad1.x) {
-                double logicalAngleDeg = -tx;
+
+            if (targetVisible) {
+                double logicalAngleDeg = -tx;  // negative = left
                 logicalAngleDeg = Math.max(SERVO_MIN_ANGLE_DEG, Math.min(SERVO_MAX_ANGLE_DEG, logicalAngleDeg));
-                double angRange = SERVO_MAX_ANGLE_DEG - SERVO_MIN_ANGLE_DEG;
-                desiredServoPos = (logicalAngleDeg - SERVO_MIN_ANGLE_DEG) / angRange;
+
+                // Convert logical angle to servo position using center offset + scaling
+                double normalizedAngle = logicalAngleDeg / (SERVO_TOTAL_ANGLE_DEG / 2.0); // scale to ±0.5 range
+                desiredServoPos = SERVO_CENTER_POS + normalizedAngle;
                 desiredServoPos = Math.max(SERVO_MIN_POS, Math.min(SERVO_MAX_POS, desiredServoPos));
             }
 
             double currentServoPos = turretServo.getPosition();
-            // manual override
+
+            // Manual override (D-pad)
             if (gamepad1.dpad_left) {
                 manualOverrideActive = true;
                 currentServoPos -= MANUAL_SERVO_STEP;
@@ -180,48 +143,25 @@ public class Test3 extends LinearOpMode {
                 double servoDelta = desiredServoPos - currentServoPos;
                 nextServoPos = currentServoPos + servoDelta * TURRET_KP;
             } else {
-                nextServoPos = currentServoPos;
+                nextServoPos = turretServo.getPosition();
             }
 
             nextServoPos = Math.max(SERVO_MIN_POS, Math.min(SERVO_MAX_POS, nextServoPos));
             turretServo.setPosition(nextServoPos);
-            double turretServoError = desiredServoPos - turretServo.getPosition();
-            boolean aligned = targetVisible && Math.abs(turretServoError) <= TURRET_ALIGNMENT_SERVO_TOL;
 
-            // -------------------------
-            // Hood auto-adjust
-            // -------------------------
-            boolean shooting = gamepad1.x || gamepad1.y || gamepad1.b;
-            if (shooting && targetVisible) {
-                double hoodDesired = HOOD_MIN_POS + (-ty * HOOD_DISTANCE_SCALE);
-                hoodDesired = Math.max(HOOD_MIN_POS, Math.min(HOOD_MAX_POS, hoodDesired));
-                turretHood.setPosition(hoodDesired);
-            }
+            boolean aligned = targetVisible && Math.abs(tx) <= TURRET_ALIGNMENT_DEG_TOL;
 
-            // -------------------------
-            // Shooter power based on distance
-            // -------------------------
-            double computedShooterPower = SHOOTER_MIN_POWER;
+            // -----------------------------
+            // Shooter Power Control
+            // -----------------------------
+            double shooterPower = 0.0;
             if (targetVisible) {
-                computedShooterPower = SHOOTER_MIN_POWER + (-ty * SHOOTER_DISTANCE_SCALE);
-                computedShooterPower = Math.max(SHOOTER_MIN_POWER, Math.min(SHOOTER_MAX_POWER, computedShooterPower));
+                shooterPower = SHOOTER_MIN_POWER + (-ty + 10.0) * SHOOTER_DISTANCE_SCALE;
+                shooterPower = Math.max(SHOOTER_MIN_POWER, Math.min(SHOOTER_MAX_POWER, shooterPower));
             }
 
-            int currentTicks = shooterMotor.getCurrentPosition();
-            long nowMs = System.currentTimeMillis();
-            long dt = nowMs - lastTimeMs;
-            if (dt > 0) {
-                currentVelocityTicksPerSec = ((double)(currentTicks - lastShooterTicks)) / dt * 1000.0;
-            }
-            lastShooterTicks = currentTicks;
-            lastTimeMs = nowMs;
-
-            targetVelocityTicksPerSec = computedShooterPower * SHOOTER_POWER_TO_TICKS_PER_SEC;
-            isUpToSpeed = (Math.abs(currentVelocityTicksPerSec - targetVelocityTicksPerSec)
-                    <= UP_TO_SPEED_TOLERANCE * Math.max(1.0, targetVelocityTicksPerSec));
-
-            if (gamepad1.x) {
-                shooterMotor.setPower(targetVisible ? computedShooterPower : 0.0);
+            if (gamepad1.x && targetVisible) {
+                shooterMotor.setPower(shooterPower);
             } else if (gamepad1.y) {
                 shooterMotor.setPower(SHOOTER_MAX_POWER);
             } else if (gamepad1.b) {
@@ -230,27 +170,36 @@ public class Test3 extends LinearOpMode {
                 shooterMotor.setPower(0.0);
             }
 
-            // -------------------------
-            // Intake control
-            // -------------------------
-            frontIntake.setPower(gamepad1.right_trigger - gamepad1.left_trigger);
 
-            // -------------------------
-            // Dashboard telemetry
-            // -------------------------
-            TelemetryPacket packet = new TelemetryPacket();
-            packet.put("Target Visible", targetVisible);
-            packet.put("tx", tx);
-            packet.put("ty", ty);
-            packet.put("Turret Servo", turretServo.getPosition());
-            packet.put("Aligned?", aligned);
-            packet.put("Turret Error", turretServoError);
-            packet.put("Shooter Power", shooterMotor.getPower());
-            packet.put("CurrentVel", currentVelocityTicksPerSec);
-            packet.put("TargetVel", targetVelocityTicksPerSec);
-            packet.put("UpToSpeed?", isUpToSpeed);
-            packet.put("Manual Override?", manualOverrideActive);
-            dashboard.sendTelemetryPacket(packet);
+
+            // -----------------------------
+            // Hood Fixed
+            // -----------------------------
+            turretHood.setPosition(HOOD_FIXED_POS);
+
+            // -----------------------------
+            // Intake
+            // -----------------------------
+            double intakePower = gamepad1.right_trigger - gamepad1.left_trigger;
+            frontIntake.setPower(intakePower);
+
+            // -----------------------------
+            // Telemetry
+            // -----------------------------
+            telemetry.addData("Target Visible", targetVisible);
+            telemetry.addData("tx", "%.2f", tx);
+            telemetry.addData("ty", "%.2f", ty);
+            telemetry.addData("Turret Pos", "%.3f", turretServo.getPosition());
+            telemetry.addData("Aligned?", aligned);
+            telemetry.addData("Shooter Power", "%.3f", shooterMotor.getPower());
+            telemetry.addData("Manual Override", manualOverrideActive);
+            telemetry.update();
+
+            dashTelemetry.addData("tx", tx);
+            dashTelemetry.addData("ty", ty);
+            dashTelemetry.addData("TurretPos", turretServo.getPosition());
+            dashTelemetry.addData("Aligned?", aligned);
+            dashTelemetry.update();
         }
     }
 }
