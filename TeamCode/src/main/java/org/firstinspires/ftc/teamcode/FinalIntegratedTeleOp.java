@@ -37,7 +37,7 @@ public class FinalIntegratedTeleOp extends LinearOpMode {
 
     // Convert shooter power -> "target velocity" scale (ticks/sec). This is a rough scaling factor.
     // Tune this to match how encoder ticks/sec correspond to power on your shooter flywheel.
-    private static final double SHOOTER_POWER_TO_TICKS_PER_SEC = 6000.0; // starting guess for GoBILDA 6000RPM
+    private static final double SHOOTER_POWER_TO_TICKS_PER_SEC = 28; // starting guess for GoBILDA 6000RPM
 
     // Turret alignment smoothing (simple P-style move toward desired servo pos)
     // We compute desired servo position from tx and then move current position a fraction toward it each loop.
