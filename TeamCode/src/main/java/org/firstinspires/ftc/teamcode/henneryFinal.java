@@ -117,6 +117,14 @@ public class henneryFinal extends LinearOpMode {
                 redLed.off();
             }
 
+            if (gamepad1.right_bumper){
+                frontIntake.setPower(1);
+            } else if (gamepad1.left_bumper){
+                frontIntake.setPower(-1);
+            }else{
+                frontIntake.setPower(0);
+            }
+
 
         }
 
