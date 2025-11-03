@@ -31,6 +31,11 @@ public class henneryFinal extends LinearOpMode {
         backLeft = hardwareMap.get(DcMotor.class, "backLeft");
         backRight = hardwareMap.get(DcMotor.class, "backRight");
 
+        frontLeft.setDirection(DcMotor.Direction.FORWARD);
+        backLeft.setDirection(DcMotor.Direction.FORWARD);
+        frontRight.setDirection(DcMotor.Direction.REVERSE);
+        backRight.setDirection(DcMotor.Direction.REVERSE);
+
         shooterMotor = hardwareMap.get(DcMotor.class, "shooterMotor");
         frontIntake = hardwareMap.get(DcMotor.class, "frontIntake");
 
@@ -62,10 +67,10 @@ public class henneryFinal extends LinearOpMode {
             double driveX = gamepad1.left_stick_x * DRIVE_SCALE; // strafe
             double turn = gamepad1.right_stick_x * DRIVE_SCALE; // rotate
 
-            double fl = driveY + driveX + turn;
-            double fr = driveY - driveX - turn;
-            double bl = driveY - driveX + turn;
-            double br = driveY + driveX - turn;
+            double fl = driveY - driveX + turn;
+            double fr = driveY + driveX - turn;
+            double bl = driveY + driveX + turn;
+            double br = driveY - driveX - turn;
 
             // normalize
             double max = Math.max(Math.max(Math.abs(fl), Math.abs(fr)), Math.max(Math.abs(bl), Math.abs(br)));
@@ -105,11 +110,21 @@ public class henneryFinal extends LinearOpMode {
             }
             if (gamepad1.dpad_up) {
                 turretServo.setPosition(.5);
-
-
+            } if (gamepad1.dpad_down) {
+                turretServo.setPosition(175);
             }
 
-            if (gamepad1.x) { // Light up the LED if the X button is pressedm
+            double intakePower = gamepad1.right_trigger - gamepad1.left_trigger;
+            // optional scale if you want to reduce top speed: intakePower *= 0.9;
+            frontIntake.setPower(intakePower);
+
+            if(gamepad1.right_bumper){
+                turretHood.setPosition(.8);
+            }else if (gamepad1.left_bumper){
+                turretHood.setPosition(.45);
+            }
+
+            if (targetVisible) { // Light up the LED if the X button is pressedm
                 redLed.setPosition(1);
             } else {
                 redLed.setPosition(0);
