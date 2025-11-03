@@ -1,13 +1,10 @@
 package org.firstinspires.ftc.teamcode;
 
-import static org.firstinspires.ftc.teamcode.pedroPathing.Test3.DRIVE_SCALE;
-
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -19,12 +16,13 @@ import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 
 @TeleOp(name = "henneryFinal", group = "TeleOp")
 public class henneryFinal extends LinearOpMode {
+    private static final double DRIVE_SCALE = 0.85;
     private DcMotor frontLeft, frontRight, backLeft, backRight;
     private DcMotor shooterMotor, frontIntake;
     private Servo turretServo, turretHood;
     private Limelight3A limelight;
 
-    private LED redLed;
+    private Servo redLed;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -36,7 +34,7 @@ public class henneryFinal extends LinearOpMode {
         shooterMotor = hardwareMap.get(DcMotor.class, "shooterMotor");
         frontIntake = hardwareMap.get(DcMotor.class, "frontIntake");
 
-        turretServo = hardwareMap.get(Servo.class, "turretTurnLeft");
+        turretServo = hardwareMap.get(Servo.class, "turretTurn");
         turretHood = hardwareMap.get(Servo.class, "turretHood");
 
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
@@ -46,7 +44,7 @@ public class henneryFinal extends LinearOpMode {
         shooterMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         shooterMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        redLed = hardwareMap.get(LED.class, "LEDLeft");
+        redLed = hardwareMap.get(Servo.class, "LEDLeft");
 
         //limelight
         limelight.pipelineSwitch(5);
@@ -100,10 +98,10 @@ public class henneryFinal extends LinearOpMode {
             }
 
             if (gamepad1.dpad_left) {
-                turretServo.setPosition(75);
+                turretServo.setPosition(90);
             }
             if (gamepad1.dpad_right) {
-                turretServo.setPosition(-75);
+                turretServo.setPosition(-90);
             }
             if (gamepad1.dpad_up) {
                 turretServo.setPosition(.5);
@@ -112,9 +110,9 @@ public class henneryFinal extends LinearOpMode {
             }
 
             if (gamepad1.x) { // Light up the LED if the X button is pressedm
-                redLed.on();
+                redLed.setPosition(1);
             } else {
-                redLed.off();
+                redLed.setPosition(0);
             }
 
 
