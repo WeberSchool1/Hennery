@@ -12,28 +12,32 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import com.qualcomm.robotcore.hardware.LED;
+
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 
 @TeleOp(name = "henneryFinal", group = "TeleOp")
-public class henneryFinal extends LinearOpMode  {
+public class henneryFinal extends LinearOpMode {
     private DcMotor frontLeft, frontRight, backLeft, backRight;
     private DcMotor shooterMotor, frontIntake;
     private Servo turretServo, turretHood;
     private Limelight3A limelight;
 
+    private LED redLed;
+
     @Override
     public void runOpMode() throws InterruptedException {
-        frontLeft  = hardwareMap.get(DcMotor.class, "frontLeft");
+        frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
         frontRight = hardwareMap.get(DcMotor.class, "frontRight");
-        backLeft   = hardwareMap.get(DcMotor.class, "backLeft");
-        backRight  = hardwareMap.get(DcMotor.class, "backRight");
+        backLeft = hardwareMap.get(DcMotor.class, "backLeft");
+        backRight = hardwareMap.get(DcMotor.class, "backRight");
 
         shooterMotor = hardwareMap.get(DcMotor.class, "shooterMotor");
-        frontIntake  = hardwareMap.get(DcMotor.class, "frontIntake");
+        frontIntake = hardwareMap.get(DcMotor.class, "frontIntake");
 
         turretServo = hardwareMap.get(Servo.class, "turretTurnLeft");
-        turretHood  = hardwareMap.get(Servo.class, "turretHood");
+        turretHood = hardwareMap.get(Servo.class, "turretHood");
 
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
 
@@ -41,6 +45,8 @@ public class henneryFinal extends LinearOpMode  {
         shooterMotor.setDirection(DcMotor.Direction.REVERSE);
         shooterMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         shooterMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        redLed = hardwareMap.get(LED.class, "LEDLeft");
 
         //limelight
         limelight.pipelineSwitch(5);
@@ -52,11 +58,11 @@ public class henneryFinal extends LinearOpMode  {
 
         limelight.start();
 
-        while (opModeIsActive()){
+        while (opModeIsActive()) {
 
             double driveY = -gamepad1.left_stick_y * DRIVE_SCALE; // forward
-            double driveX =  gamepad1.left_stick_x * DRIVE_SCALE; // strafe
-            double turn   =  gamepad1.right_stick_x * DRIVE_SCALE; // rotate
+            double driveX = gamepad1.left_stick_x * DRIVE_SCALE; // strafe
+            double turn = gamepad1.right_stick_x * DRIVE_SCALE; // rotate
 
             double fl = driveY + driveX + turn;
             double fr = driveY - driveX - turn;
@@ -66,7 +72,10 @@ public class henneryFinal extends LinearOpMode  {
             // normalize
             double max = Math.max(Math.max(Math.abs(fl), Math.abs(fr)), Math.max(Math.abs(bl), Math.abs(br)));
             if (max > 1.0) {
-                fl /= max; fr /= max; bl /= max; br /= max;
+                fl /= max;
+                fr /= max;
+                bl /= max;
+                br /= max;
             }
 
             frontLeft.setPower(fl);
@@ -82,26 +91,36 @@ public class henneryFinal extends LinearOpMode  {
             double tx = targetVisible ? ll.getTx() : 0.0;
             double ty = targetVisible ? ll.getTy() : 0.0;
 
-            if(gamepad1.a) {
+            if (gamepad1.a) {
                 shooterMotor.setPower(.75);
-            } else if (gamepad1.b){
-                    shooterMotor.setPower(.45);
-            }else{
+            } else if (gamepad1.b) {
+                shooterMotor.setPower(.45);
+            } else {
                 shooterMotor.setPower(0);
             }
 
-            if(gamepad1.dpad_left){
+            if (gamepad1.dpad_left) {
                 turretServo.setPosition(75);
-            } if(gamepad1.dpad_right){
+            }
+            if (gamepad1.dpad_right) {
                 turretServo.setPosition(-75);
-            }else{
+            }
+            if (gamepad1.dpad_up) {
                 turretServo.setPosition(.5);
+
+
             }
 
-
+            if (gamepad1.x) { // Light up the LED if the X button is pressedm
+                redLed.on();
+            } else {
+                redLed.off();
             }
 
 
         }
 
+
     }
+}
+
