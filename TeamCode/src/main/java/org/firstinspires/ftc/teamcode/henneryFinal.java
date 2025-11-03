@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode;
 
-import static org.firstinspires.ftc.teamcode.pedroPathing.Test3.DRIVE_SCALE;
-
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
@@ -17,6 +15,8 @@ import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 
 @TeleOp(name = "henneryFinal", group = "TeleOp")
 public class henneryFinal extends LinearOpMode  {
+
+    private static final double DRIVE_SCALE = 0.85;
     private DcMotor frontLeft, frontRight, backLeft, backRight;
     private DcMotor shooterMotor, frontIntake;
     private Servo turretServo, turretHood;
@@ -91,11 +91,9 @@ public class henneryFinal extends LinearOpMode  {
             }
 
             if(gamepad1.dpad_left){
-                turretServo.setPosition(75);
-            } if(gamepad1.dpad_right){
-                turretServo.setPosition(-75);
-            }else{
-                turretServo.setPosition(.5);
+                turretServo.setPosition(80);
+            } if(gamepad1.dpad_right) {
+                turretServo.setPosition(-80);
             }
 
 
