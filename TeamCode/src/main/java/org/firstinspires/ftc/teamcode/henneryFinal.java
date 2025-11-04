@@ -119,20 +119,12 @@ public class henneryFinal extends LinearOpMode {
 
             if (gamepad1.dpad_left) {
                 turretSpin.setPower(1);}
+            else if (gamepad1.dpad_right){
+                    turretSpin.setPower(-1);}
             else {
                 turretSpin.setPower(0);
             }
 
-           // if (gamepad1.dpad_left) {
-                //turretServo.setPosition(0);
-            //}
-           // else if (gamepad1.dpad_right) {
-                //turretServo.setPosition(.25);
-           // }
-            //else if (gamepad1.dpad_up) {
-               // turretServo.setPosition(.5);
-            //} else  if (gamepad1.dpad_down) {
-                //turretServo.setPosition(-1);}
 
             double intakePower = gamepad1.right_trigger - gamepad1.left_trigger;
             // optional scale if you want to reduce top speed: intakePower *= 0.9;
