@@ -1,13 +1,10 @@
 package org.firstinspires.ftc.teamcode;
 
-import static org.firstinspires.ftc.teamcode.pedroPathing.Test3.DRIVE_SCALE;
-
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -19,12 +16,18 @@ import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 
 @TeleOp(name = "henneryFinal", group = "TeleOp")
 public class henneryFinal extends LinearOpMode {
+    private static final double DRIVE_SCALE = 0.85;
     private DcMotor frontLeft, frontRight, backLeft, backRight;
-    private DcMotor shooterMotor, frontIntake;
+    private DcMotor shooterMotor, frontIntake, backIntake, turretSpin;
     private Servo turretServo, turretHood;
     private Limelight3A limelight;
 
-    private LED redLed;
+    private Servo redLed;
+
+    private static  double SERVO_MIN_POS = 0.0;
+    private static  double SERVO_MAX_POS = 1.0;
+
+    public static double MANUAL_SERVO_STEP = 0.01;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -33,11 +36,19 @@ public class henneryFinal extends LinearOpMode {
         backLeft = hardwareMap.get(DcMotor.class, "backLeft");
         backRight = hardwareMap.get(DcMotor.class, "backRight");
 
+        frontLeft.setDirection(DcMotor.Direction.FORWARD);
+        backLeft.setDirection(DcMotor.Direction.FORWARD);
+        frontRight.setDirection(DcMotor.Direction.REVERSE);
+        backRight.setDirection(DcMotor.Direction.REVERSE);
+
         shooterMotor = hardwareMap.get(DcMotor.class, "shooterMotor");
         frontIntake = hardwareMap.get(DcMotor.class, "frontIntake");
+        turretSpin =  hardwareMap.get(DcMotor.class, "turretOne");
 
-        turretServo = hardwareMap.get(Servo.class, "turretTurnLeft");
+        turretServo = hardwareMap.get(Servo.class, "turretTurn");
         turretHood = hardwareMap.get(Servo.class, "turretHood");
+
+        backIntake = hardwareMap.get(DcMotor.class, "backIntake");
 
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
 
@@ -46,7 +57,7 @@ public class henneryFinal extends LinearOpMode {
         shooterMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         shooterMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        redLed = hardwareMap.get(LED.class, "LEDLeft");
+        redLed = hardwareMap.get(Servo.class, "LEDLeft");
 
         //limelight
         limelight.pipelineSwitch(5);
@@ -64,10 +75,10 @@ public class henneryFinal extends LinearOpMode {
             double driveX = gamepad1.left_stick_x * DRIVE_SCALE; // strafe
             double turn = gamepad1.right_stick_x * DRIVE_SCALE; // rotate
 
-            double fl = driveY + driveX + turn;
-            double fr = driveY - driveX - turn;
-            double bl = driveY - driveX + turn;
-            double br = driveY + driveX - turn;
+            double fl = driveY - driveX + turn;
+            double fr = driveY + driveX - turn;
+            double bl = driveY + driveX + turn;
+            double br = driveY - driveX - turn;
 
             // normalize
             double max = Math.max(Math.max(Math.abs(fl), Math.abs(fr)), Math.max(Math.abs(bl), Math.abs(br)));
@@ -91,6 +102,13 @@ public class henneryFinal extends LinearOpMode {
             double tx = targetVisible ? ll.getTx() : 0.0;
             double ty = targetVisible ? ll.getTy() : 0.0;
 
+            if (gamepad1.y) {
+                backIntake.setPower(.75);}
+            else {
+                backIntake.setPower(0);
+            }
+
+
             if (gamepad1.a) {
                 shooterMotor.setPower(.75);
             } else if (gamepad1.b) {
@@ -100,21 +118,28 @@ public class henneryFinal extends LinearOpMode {
             }
 
             if (gamepad1.dpad_left) {
-                turretServo.setPosition(75);
-            }
-            if (gamepad1.dpad_right) {
-                turretServo.setPosition(-75);
-            }
-            if (gamepad1.dpad_up) {
-                turretServo.setPosition(.5);
-
-
+                turretSpin.setPower(1);}
+            else if (gamepad1.dpad_right){
+                    turretSpin.setPower(-1);}
+            else {
+                turretSpin.setPower(0);
             }
 
-            if (gamepad1.x) { // Light up the LED if the X button is pressedm
-                redLed.on();
+
+            double intakePower = gamepad1.right_trigger - gamepad1.left_trigger;
+            // optional scale if you want to reduce top speed: intakePower *= 0.9;
+            frontIntake.setPower(intakePower);
+
+            if(gamepad1.right_bumper){
+                turretHood.setPosition(.8);
+            }else if (gamepad1.left_bumper){
+                turretHood.setPosition(.45);
+            }
+
+            if (targetVisible) { // Light up the LED if the X button is pressedm
+                redLed.setPosition(1);
             } else {
-                redLed.off();
+                redLed.setPosition(0);
             }
 
             if (gamepad1.right_bumper){
@@ -131,4 +156,5 @@ public class henneryFinal extends LinearOpMode {
 
     }
 }
+
 

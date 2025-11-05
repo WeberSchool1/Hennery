@@ -54,7 +54,7 @@ public class Test2 extends LinearOpMode {
 
     // Shooter encoder mapping: default guess. PLEASE measure your motor ticks/sec vs power and replace this value.
     // We'll initially use this to compute a target velocity (ticks/sec) from the computed power.
-    private static final double DEFAULT_TICKS_PER_POWER = 6000.0; // placeholder — measure & replace
+    private static final double DEFAULT_TICKS_PER_POWER = 28; // placeholder — measure & replace
     private double ticksPerPower = DEFAULT_TICKS_PER_POWER;
 
     // Up-to-speed tolerance (fraction of target velocity)
