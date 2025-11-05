@@ -34,8 +34,8 @@ public class henneryFinalAutoTurretShooter_AutoShoot extends LinearOpMode {
 
     // Auto-shoot parameters
     private final double ALIGN_TOLERANCE = 1.0;   // degrees tx tolerance
-    private final long SHOOTER_SPINUP_MS = 700;   // wait before feed
-    private final long FEED_DURATION_MS = 600;    // feeder run time
+    private final long SHOOTER_SPINUP_MS = 3000;   // wait before feed
+    private final long FEED_DURATION_MS = 1000;    // feeder run time
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -160,7 +160,7 @@ public class henneryFinalAutoTurretShooter_AutoShoot extends LinearOpMode {
                 backIntake.setPower(0.0);
 
                 // 4. Stop shooter after short delay
-                sleep(200);
+                sleep(2000);
                 shooterMotor.setPower(0.0);
             }
 

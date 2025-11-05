@@ -28,9 +28,9 @@ public class henneryFinalAutoTurretShooter extends LinearOpMode {
     private final double TARGET_HEIGHT = 24.0;  // example: hub height
     private final double CAMERA_ANGLE = 19.0;   // degrees
     private final double MIN_DISTANCE = 20.0;   // inches
-    private final double MAX_DISTANCE = 144.0;  // inches
+    private final double MAX_DISTANCE = 140.0;  // inches
     private final double MIN_POWER = 0.45;
-    private final double MAX_POWER = 0.75;
+    private final double MAX_POWER = 0.8;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -111,16 +111,6 @@ public class henneryFinalAutoTurretShooter extends LinearOpMode {
                 turretSpin.setPower(0.0);
             }
 
-            // --- Shooter auto-speed ---
-            if (targetVisible && gamepad1.a) {
-                double distance = (TARGET_HEIGHT - CAMERA_HEIGHT) /
-                        Math.tan(Math.toRadians(CAMERA_ANGLE + ty));
-                distance = Math.max(MIN_DISTANCE, Math.min(MAX_DISTANCE, distance));
-                double shooterPower = MIN_POWER + (distance - MIN_DISTANCE) / (MAX_DISTANCE - MIN_DISTANCE) * (MAX_POWER - MIN_POWER);
-                shooterMotor.setPower(shooterPower);
-            } else {
-                shooterMotor.setPower(0.0);
-            }
 
             // --- Turret hood ---
             if (gamepad1.right_bumper) turretHood.setPosition(0.8);
@@ -131,7 +121,7 @@ public class henneryFinalAutoTurretShooter extends LinearOpMode {
             // --- Shooter auto-speed ---
             double targetShooterPower = 0.0; // initialize target power
 
-            if (targetVisible && gamepad1.a) {
+            if (gamepad1.y) {
                 double distance = (TARGET_HEIGHT - CAMERA_HEIGHT) /
                         Math.tan(Math.toRadians(CAMERA_ANGLE + ty));
                 distance = Math.max(MIN_DISTANCE, Math.min(MAX_DISTANCE, distance));
@@ -146,18 +136,19 @@ public class henneryFinalAutoTurretShooter extends LinearOpMode {
             double intakePower = gamepad1.right_trigger - gamepad1.left_trigger;
             frontIntake.setPower(intakePower);
 
-            if (gamepad1.y) {
-                backIntake.setPower(0.1);
+            if (gamepad1.right_bumper) {
+                backIntake.setPower(.9);
             } else {
                 backIntake.setPower(0);}
 
 // --- Turret hood ---
-            if (gamepad1.right_bumper) turretHood.setPosition(0.8);
-            else if (gamepad1.left_bumper) turretHood.setPosition(0.45);
+            if (gamepad1.dpad_right) turretHood.setPosition(0.8);
+            else if (gamepad1.dpad_left) turretHood.setPosition(0.45);
 
 // --- LED feedback ---
             if (targetVisible){
             redLed.setPosition(.611);}
+            else { redLed.setPosition(0);}
 
 // --- Telemetry ---
             TelemetryPacket packet = new TelemetryPacket();
