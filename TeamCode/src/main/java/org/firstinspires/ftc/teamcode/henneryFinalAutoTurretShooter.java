@@ -10,7 +10,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 
-@TeleOp(name = "henneryFinalAutoTurretShooter", group = "TeleOp")
+@TeleOp(name = "henneryFinal", group = "TeleOp")
 public class henneryFinalAutoTurretShooter extends LinearOpMode {
     private static final double DRIVE_SCALE = 0.85;
 
