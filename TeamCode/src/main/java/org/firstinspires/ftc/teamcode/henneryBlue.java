@@ -1,17 +1,16 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import com.acmerobotics.dashboard.FtcDashboard;
-import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
-
-@TeleOp(name = "henneryFinal", group = "TeleOp")
-public class henneryFinalAutoTurretShooter extends LinearOpMode {
+@TeleOp(name = "henneryBlue", group = "TeleOp")
+public class henneryBlue extends LinearOpMode {
     private static final double DRIVE_SCALE = 0.85;
 
     private DcMotor frontLeft, frontRight, backLeft, backRight;
@@ -30,7 +29,7 @@ public class henneryFinalAutoTurretShooter extends LinearOpMode {
     private final double MIN_DISTANCE = 20.0;   // inches
     private final double MAX_DISTANCE = 140.0;  // inches
     private final double MIN_POWER = 0.45;
-    private final double MAX_POWER = 0.8;
+    private final double MAX_POWER = 0.78;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -62,7 +61,7 @@ public class henneryFinalAutoTurretShooter extends LinearOpMode {
         redLed = hardwareMap.get(Servo.class, "LEDLeft");
 
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
-        limelight.pipelineSwitch(5);
+        limelight.pipelineSwitch(4);
 
         telemetry.addLine("henneryFinal initialized. Press start.");
         telemetry.update();
@@ -112,12 +111,6 @@ public class henneryFinalAutoTurretShooter extends LinearOpMode {
             }
 
 
-            // --- Turret hood ---
-            if (gamepad1.right_bumper) turretHood.setPosition(0.8);
-            else if (gamepad1.left_bumper) turretHood.setPosition(0.45);
-
-
-            // --- Telemetry ---
             // --- Shooter auto-speed ---
             double targetShooterPower = 0.0; // initialize target power
 
@@ -140,6 +133,7 @@ public class henneryFinalAutoTurretShooter extends LinearOpMode {
                 backIntake.setPower(.9);
             } else {
                 backIntake.setPower(0);}
+
 
 // --- Turret hood ---
             if (gamepad1.dpad_right) turretHood.setPosition(0.8);
