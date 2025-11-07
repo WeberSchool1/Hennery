@@ -6,9 +6,12 @@ import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.TouchSensor;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 @TeleOp(name = "henneryRed", group = "TeleOp")
 public class henneryRed extends LinearOpMode {
@@ -16,7 +19,8 @@ public class henneryRed extends LinearOpMode {
 
     private DcMotor frontLeft, frontRight, backLeft, backRight;
     private DcMotor shooterMotor, frontIntake, backIntake, turretSpin;
-    private Servo turretServo, turretHood, redLed;
+    private Servo turretHood, rightLed, leftLed;
+    private TouchSensor touchSensor;
     private Limelight3A limelight;
 
     // Turret auto-align constants
@@ -36,6 +40,8 @@ public class henneryRed extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
 
         FtcDashboard dashboard = FtcDashboard.getInstance();
+        Telemetry telemetry = dashboard.getTelemetry();
+
 
         // --- Hardware mapping ---
         frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
@@ -57,9 +63,11 @@ public class henneryRed extends LinearOpMode {
         backIntake = hardwareMap.get(DcMotor.class, "backIntake");
         turretSpin = hardwareMap.get(DcMotor.class, "turretOne");
 
-        turretServo = hardwareMap.get(Servo.class, "turretTurn");
+        touchSensor = hardwareMap.get(TouchSensor.class, "touchsensor");
         turretHood = hardwareMap.get(Servo.class, "turretHood");
-        redLed = hardwareMap.get(Servo.class, "LEDLeft");
+        leftLed = hardwareMap.get(Servo.class, "LEDLeft");
+        rightLed = hardwareMap.get(Servo.class, "LEDRight");
+
 
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
         limelight.pipelineSwitch(5);
@@ -142,8 +150,17 @@ public class henneryRed extends LinearOpMode {
 
 // --- LED feedback ---
             if (targetVisible){
-            redLed.setPosition(.611);}
-            else { redLed.setPosition(0);}
+            leftLed.setPosition(.611);}
+            else { leftLed.setPosition(0);}
+
+            if (touchSensor.isPressed()) {
+                rightLed.setPosition(.277);
+                telemetry.addData("Touch Sensor", "Is Pressed");
+            } else {
+                telemetry.addData("Touch Sensor", "Is Not Pressed");
+            }
+
+
 
 // --- Telemetry ---
             TelemetryPacket packet = new TelemetryPacket();
