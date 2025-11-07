@@ -145,8 +145,15 @@ public class henneryRed extends LinearOpMode {
 
 
 // --- Turret hood ---
-            if (gamepad1.dpad_right) turretHood.setPosition(0.8);
-            else if (gamepad1.dpad_left) turretHood.setPosition(0.45);
+            if (gamepad1.dpad_up) {turretHood.setPosition(0.8);}
+             if (gamepad1.dpad_down) {turretHood.setPosition(0.45);}
+
+            if (gamepad1.dpad_left){
+                turretSpin.setPower(-.3);
+            }
+            if (gamepad1.dpad_right){
+                turretSpin.setPower(.3);
+            }
 
 // --- LED feedback ---
             if (targetVisible){
