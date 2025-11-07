@@ -15,7 +15,7 @@ public class henneryBlue extends LinearOpMode {
 
     private DcMotor frontLeft, frontRight, backLeft, backRight;
     private DcMotor shooterMotor, frontIntake, backIntake, turretSpin;
-    private Servo turretServo, turretHood, redLed;
+    private Servo turretHood, rightLed, leftLed;
     private Limelight3A limelight;
 
     // Turret auto-align constants
@@ -56,10 +56,9 @@ public class henneryBlue extends LinearOpMode {
         backIntake = hardwareMap.get(DcMotor.class, "backIntake");
         turretSpin = hardwareMap.get(DcMotor.class, "turretOne");
 
-        turretServo = hardwareMap.get(Servo.class, "turretTurn");
         turretHood = hardwareMap.get(Servo.class, "turretHood");
-        redLed = hardwareMap.get(Servo.class, "LEDLeft");
-
+        leftLed = hardwareMap.get(Servo.class, "LEDLeft");
+        rightLed = hardwareMap.get(Servo.class, "LEDRight");
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
         limelight.pipelineSwitch(4);
 
@@ -136,14 +135,26 @@ public class henneryBlue extends LinearOpMode {
 
 
 // --- Turret hood ---
-            if (gamepad1.dpad_right) turretHood.setPosition(0.8);
-            else if (gamepad1.dpad_left) turretHood.setPosition(0.45);
+            if (gamepad1.dpad_up) {
+                turretHood.setPosition(0.8);
+            }
+            if (gamepad1.dpad_down) {
+                turretHood.setPosition(0.45);}
+
+            if (gamepad1.dpad_left){
+                turretSpin.setPower(-.3);
+            }
+            if (gamepad1.dpad_right){
+                turretSpin.setPower(.3);
+            }
+
 
 // --- LED feedback ---
             if (targetVisible){
-            redLed.setPosition(.611);}
-            else { redLed.setPosition(0);}
-
+                leftLed.setPosition(.611);
+                rightLed.setPosition(.611);}
+            else { leftLed.setPosition(0);
+                rightLed.setPosition(0);}
 // --- Telemetry ---
             TelemetryPacket packet = new TelemetryPacket();
 

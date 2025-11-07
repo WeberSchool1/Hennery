@@ -63,7 +63,7 @@ public class Autotwolaucnh extends LinearOpMode {
         waitForStart();
 
         // --- 1️⃣ Spin up shooter motor ---
-        double targetPower = 0.65; // target power
+        double targetPower = 0.67; // target power
         shooterMotor.setPower(targetPower);
 
         double targetVelocity = 6000 * targetPower; // rough guess: 6000 ticks/sec max
@@ -97,30 +97,12 @@ public class Autotwolaucnh extends LinearOpMode {
         sleep(1500); // feed for 1.5 seconds
         backIntake.setPower(0.0);
 
+
         frontIntake.setPower(1.0);
         sleep(1000);
 
-        while (opModeIsActive()) {
-            int currentTicks = shooterMotor.getCurrentPosition();
-            long now = System.currentTimeMillis();
-            double dt = (now - lastTime) / 1000.0;
-            if (dt > 0) velocity = (currentTicks - lastTicks) / dt;
-
-            lastTicks = currentTicks;
-            lastTime = now;
-
-            boolean upToSpeed = Math.abs(velocity - targetVelocity) <= (targetVelocity * tolerance);
-
-            telemetry.addData("Velocity (ticks/sec)", velocity);
-            telemetry.addData("Target Velocity", targetVelocity);
-            telemetry.addData("Up to speed?", upToSpeed);
-            telemetry.update();
-
-            if (upToSpeed) break; // exit loop when shooter is ready
-        }
-
         backIntake.setPower(1.0);
-        sleep(1500);
+        sleep(1000);
         backIntake.setPower(0.0);
 
 
@@ -130,7 +112,7 @@ public class Autotwolaucnh extends LinearOpMode {
         frontRight.setPower(drivePower);
         backLeft.setPower(drivePower);
         backRight.setPower(drivePower);
-        sleep(1000);
+        sleep(2000);
 
         // --- 5️⃣ Stop everything ---
         frontLeft.setPower(0);

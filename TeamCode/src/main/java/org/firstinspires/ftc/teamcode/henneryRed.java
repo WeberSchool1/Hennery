@@ -6,7 +6,6 @@ import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.hardware.TouchSensor;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
@@ -20,7 +19,6 @@ public class henneryRed extends LinearOpMode {
     private DcMotor frontLeft, frontRight, backLeft, backRight;
     private DcMotor shooterMotor, frontIntake, backIntake, turretSpin;
     private Servo turretHood, rightLed, leftLed;
-    private TouchSensor touchSensor;
     private Limelight3A limelight;
 
     // Turret auto-align constants
@@ -63,7 +61,6 @@ public class henneryRed extends LinearOpMode {
         backIntake = hardwareMap.get(DcMotor.class, "backIntake");
         turretSpin = hardwareMap.get(DcMotor.class, "turretOne");
 
-        touchSensor = hardwareMap.get(TouchSensor.class, "touchsensor");
         turretHood = hardwareMap.get(Servo.class, "turretHood");
         leftLed = hardwareMap.get(Servo.class, "LEDLeft");
         rightLed = hardwareMap.get(Servo.class, "LEDRight");
@@ -145,8 +142,11 @@ public class henneryRed extends LinearOpMode {
 
 
 // --- Turret hood ---
-            if (gamepad1.dpad_up) {turretHood.setPosition(0.8);}
-             if (gamepad1.dpad_down) {turretHood.setPosition(0.45);}
+            if (gamepad1.dpad_up) {
+                turretHood.setPosition(0.8);
+            }
+             if (gamepad1.dpad_down) {
+                 turretHood.setPosition(0.45);}
 
             if (gamepad1.dpad_left){
                 turretSpin.setPower(-.3);
@@ -157,15 +157,11 @@ public class henneryRed extends LinearOpMode {
 
 // --- LED feedback ---
             if (targetVisible){
-            leftLed.setPosition(.611);}
-            else { leftLed.setPosition(0);}
+            leftLed.setPosition(.611);
+            rightLed.setPosition(.611);}
+            else { leftLed.setPosition(0);
+             rightLed.setPosition(0);}
 
-            if (touchSensor.isPressed()) {
-                rightLed.setPosition(.277);
-                telemetry.addData("Touch Sensor", "Is Pressed");
-            } else {
-                telemetry.addData("Touch Sensor", "Is Not Pressed");
-            }
 
 
 
